@@ -72,6 +72,17 @@ function json(data, status) {
 
 export function onRequestOptions() { return json({ ok: true }); }
 
+export function onRequestGet(context) {
+  return json({
+    ok: true,
+    service: 'railway-track-engineer-ai',
+    route: '/api/chat',
+    method_expected: 'POST',
+    api_key_configured: !!getEnv(context, 'ANTHROPIC_API_KEY'),
+    model: getEnv(context, 'ANTHROPIC_MODEL') || getEnv(context, 'MODEL') || 'claude-sonnet-4-6'
+  });
+}
+
 export async function onRequestPost(context) {
   try {
     const apiKey = getEnv(context, 'ANTHROPIC_API_KEY');
