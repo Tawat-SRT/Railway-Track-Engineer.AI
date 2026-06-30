@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Railway Track Engineer.AI</title>
+<meta name="description" content="ผู้ช่วยวิศวกรทางรถไฟระดับผู้เชี่ยวชาญ — วิเคราะห์ คำนวณ ถอดแบบ ตรวจงาน อ้างอิงมาตรฐานระบบราง">
+<meta name="theme-color" content="#21323F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Railway Eng.AI">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2321323F'/%3E%3Crect x='14' y='44' width='36' height='5' rx='2' fill='%23EA6A1A'/%3E%3Cg stroke='%23EA6A1A' stroke-width='3.4' stroke-linecap='round'%3E%3Cline x1='20' y1='44' x2='32' y2='16'/%3E%3Cline x1='44' y1='44' x2='32' y2='16'/%3E%3C/g%3E%3Cg stroke='%239DAAB1' stroke-width='2' opacity='.6'%3E%3Cline x1='23' y1='38' x2='41' y2='38'/%3E%3Cline x1='25' y1='31' x2='39' y2='31'/%3E%3Cline x1='27' y1='24' x2='37' y2='24'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2321323F'/%3E%3Crect x='14' y='44' width='36' height='5' rx='2' fill='%23EA6A1A'/%3E%3Cg stroke='%23EA6A1A' stroke-width='3.4' stroke-linecap='round'%3E%3Cline x1='20' y1='44' x2='32' y2='16'/%3E%3Cline x1='44' y1='44' x2='32' y2='16'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Railway%20Track%20Engineer.AI%22%2C%22short_name%22%3A%22Railway%20Eng.AI%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2321323F%22%2C%22theme_color%22%3A%22%2321323F%22%7D">
+<style>
+  *{box-sizing:border-box;}
+  :root{
+    --paper:#F3F5F4; --paper-2:#FFFFFF; --paper-3:#E9EDEC;
+    --steel:#21323F; --steel-2:#2B4150; --steel-3:#33495A;
+    --ink:#16212B; --muted:#5E7280; --muted-2:#7E909C;
+    --line:#D7DDDC; --line-steel:#3A5060;
+    --signal:#EA6A1A; --signal-deep:#C4540C; --rail:#9DAAB1; --verify:#2E7D5B;
+  }
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:'Sarabun',Tahoma,'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--paper); color:var(--ink); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{display:flex;flex-direction:column;height:100dvh;}
+  .mono{font-family:'IBM Plex Mono','Sarabun',ui-monospace,Menlo,Consolas,monospace;}
+  .dot-ai{color:var(--signal);font-weight:700;}
+  button{font-family:inherit;}
+  .icon-btn{background:transparent;border:none;color:inherit;cursor:pointer;padding:7px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;line-height:0;}
+  .icon-btn:hover{background:rgba(255,255,255,.12);}
+  svg{display:block;}
+
+  /* Top bar */
+  .topbar{display:flex;align-items:center;gap:8px;padding:0 12px;height:54px;background:var(--steel);color:#EAF1F5;border-bottom:1px solid var(--line-steel);flex-shrink:0;}
+  .brand-mini{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px;white-space:nowrap;}
+  .brand-ic{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--signal),var(--signal-deep));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .tabs{display:flex;gap:4px;margin-left:6px;}
+  .tab{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:none;background:transparent;color:#9FB1BC;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;border-bottom:2px solid transparent;}
+  .tab:hover{color:#EAF1F5;background:rgba(255,255,255,.08);}
+  .tab.on{color:#fff;border-bottom-color:var(--signal);}
+  .spacer{flex:1;}
+  .key-dot{width:8px;height:8px;border-radius:50%;background:#c0492f;flex-shrink:0;}
+  .key-dot.ok{background:var(--verify);}
+
+  /* Drawer */
+  .scrim{position:fixed;inset:0;background:rgba(15,25,33,.5);z-index:40;display:none;}
+  .scrim.show{display:block;}
+  .drawer{position:fixed;top:0;left:0;bottom:0;width:300px;max-width:86vw;background:var(--steel);color:#DCE5EB;z-index:50;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;box-shadow:2px 0 24px rgba(0,0,0,.3);}
+  .drawer.show{transform:translateX(0);}
+  .drawer-top{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 6px;}
+  .drawer h3{margin:0;font-size:14.5px;color:#fff;}
+  .drawer-sub{font-size:11.5px;color:#9FB1BC;}
+  .sec{padding:14px 14px 2px;}
+  .sec-h{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#8EA2AE;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .cap{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start;}
+  .cap-ic{width:25px;height:25px;border-radius:6px;background:rgba(234,106,26,.13);color:var(--signal);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .cap-t{font-size:12.5px;font-weight:600;color:#EAF1F5;line-height:1.25;}
+  .cap-d{font-size:11px;color:#94A7B2;line-height:1.3;}
+  .ref-g{margin-bottom:10px;}
+  .ref-g-t{font-size:10.5px;font-weight:700;color:var(--signal);margin-bottom:4px;letter-spacing:.2px;}
+  .ref-g ul{margin:0;padding-left:15px;}
+  .ref-g li{font-size:11px;color:#B7C6CF;line-height:1.45;}
+  .disc{margin:14px;padding:11px 12px;border-top:1px solid var(--line-steel);font-size:11px;color:#90A3AE;line-height:1.5;display:flex;gap:8px;}
+  .disc svg{flex-shrink:0;margin-top:1px;color:var(--signal);}
+
+  /* Views */
+  .view{flex:1;min-height:0;display:none;flex-direction:column;}
+  .view.on{display:flex;}
+
+  /* Chat */
+  #messages{flex:1;overflow-y:auto;}
+  .hero{max-width:680px;margin:0 auto;padding:30px 22px 18px;text-align:center;}
+  .hero-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--signal-deep);background:rgba(234,106,26,.1);border:1px solid rgba(234,106,26,.3);padding:4px 12px;border-radius:20px;margin-bottom:8px;}
+  .hero h1{font-size:23px;margin:6px 0 8px;letter-spacing:-.2px;}
+  .hero p{font-size:13.5px;color:var(--muted);max-width:560px;margin:0 auto 18px;line-height:1.7;}
+  .hero-art{max-width:330px;margin:0 auto 4px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:22px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer;}
+  .chip:hover{border-color:var(--signal);color:var(--signal-deep);}
+  .chip svg{color:var(--signal);}
+  .msgs-wrap{max-width:820px;margin:0 auto;padding:20px 16px 8px;}
+  .row{display:flex;gap:11px;margin-bottom:18px;align-items:flex-start;}
+  .av{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+  .row.user .av{background:var(--paper-3);color:var(--muted);}
+  .row.assistant .av{background:linear-gradient(135deg,var(--steel-2),var(--steel));color:#fff;}
+  .bubble{flex:1;min-width:0;border-radius:12px;padding:12px 15px;font-size:14.5px;background:var(--paper-2);border:1px solid var(--line);}
+  .row.assistant .bubble{border-left:3px solid var(--signal);}
+  .user-text{white-space:pre-wrap;}
+  .thinking{display:inline-flex;align-items:center;gap:9px;color:var(--muted);}
+  .spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--signal);border-radius:50%;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  /* Composer */
+  .composer{border-top:1px solid var(--line);background:var(--paper-2);padding:11px 16px calc(11px + env(safe-area-inset-bottom));flex-shrink:0;}
+  .inwrap{max-width:820px;margin:0 auto;display:flex;gap:9px;align-items:flex-end;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:7px 7px 7px 14px;}
+  .inwrap:focus-within{border-color:var(--signal);box-shadow:0 0 0 3px rgba(234,106,26,.1);}
+  #input{flex:1;border:none;background:transparent;resize:none;font:inherit;font-size:14.5px;color:var(--ink);line-height:1.55;padding:6px 0;max-height:150px;outline:none;}
+  #input::placeholder{color:var(--muted-2);}
+  .send{width:38px;height:38px;border-radius:10px;border:none;background:var(--signal);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .send:hover:not(:disabled){background:var(--signal-deep);}
+  .send:disabled{background:var(--line);color:var(--muted-2);cursor:default;}
+  .cnote{max-width:820px;margin:7px auto 0;font-size:11px;color:var(--muted-2);text-align:center;}
+  .attach{width:38px;height:38px;border-radius:10px;border:none;background:var(--paper-3);color:var(--steel-2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .attach:hover{background:#dfe5e4;color:var(--signal-deep);}
+  .img-preview{max-width:820px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;}
+  .img-preview:not(:empty){margin-bottom:9px;}
+  .thumb{position:relative;width:62px;height:62px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--paper-3);}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(22,33,43,.78);color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  .thumb .rm:hover{background:var(--signal-deep);}
+  .bubble-imgs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px;}
+  .bubble-imgs img{max-width:170px;max-height:170px;border-radius:8px;border:1px solid var(--line);display:block;}
+
+  /* Markdown */
+  .md>:first-child{margin-top:0;}.md>:last-child{margin-bottom:0;}
+  .md-p{margin:9px 0;}
+  .md-h{font-weight:700;line-height:1.35;margin:15px 0 7px;}
+  .md-h1{font-size:18px;}.md-h2{font-size:16.5px;border-bottom:1px solid var(--line);padding-bottom:5px;}.md-h3{font-size:15px;}.md-h4{font-size:14px;color:var(--steel-2);}
+  .md-ul,.md-ol{margin:8px 0;padding-left:22px;}.md-li{margin:4px 0;line-height:1.55;}
+  .md-ul .md-li{list-style:none;position:relative;}
+  .md-ul .md-li::before{content:"";position:absolute;left:-15px;top:9px;width:5px;height:5px;border-radius:1px;background:var(--signal);}
+  .md-code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:var(--paper-3);padding:1px 5px;border-radius:4px;color:var(--signal-deep);}
+  .md-pre{background:var(--steel);color:#E6EDF1;border-radius:9px;padding:13px 15px;overflow-x:auto;margin:11px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.6;}
+  .md-pre code{background:none;padding:0;color:inherit;}
+  .md-hr{border:none;border-top:1px solid var(--line);margin:15px 0;}
+  .md-quote{border-left:3px solid var(--verify);background:rgba(46,125,91,.06);padding:9px 14px;border-radius:0 8px 8px 0;margin:11px 0;color:var(--steel-2);font-size:13.5px;}
+  .md-table-wrap{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:9px;}
+  .md-table{border-collapse:collapse;width:100%;font-size:13px;}
+  .md-th{background:var(--steel);color:#EAF1F5;text-align:left;padding:9px 12px;font-weight:600;white-space:nowrap;}
+  .md-td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:top;}
+  .md-table tbody tr:nth-child(even){background:var(--paper);}
+
+  /* Tools */
+  #view-tools{overflow-y:auto;}
+  .tools{max-width:860px;margin:0 auto;padding:18px;width:100%;}
+  .tnote{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--muted);background:var(--paper-2);border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:9px;padding:11px 14px;margin-bottom:16px;line-height:1.55;}
+  .tnote svg{flex-shrink:0;margin-top:2px;color:var(--signal);}
+  .tool{background:var(--paper-2);border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:16px;}
+  .tool-h{display:flex;gap:11px;align-items:center;margin-bottom:14px;}
+  .tool-ic{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--steel-2),var(--steel));color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .tool-t{font-size:15px;font-weight:700;line-height:1.25;}
+  .tool-d{font-size:12px;color:var(--muted);line-height:1.35;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:14px;}
+  .fld{display:flex;flex-direction:column;gap:4px;}
+  .fld label{font-size:12px;color:var(--steel-2);font-weight:600;display:flex;justify-content:space-between;gap:6px;align-items:baseline;}
+  .fld .u{font-size:10.5px;color:var(--muted-2);font-weight:400;}
+  .fld input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:'IBM Plex Mono','Sarabun',monospace;color:var(--ink);background:var(--paper);outline:none;width:100%;}
+  .fld input:focus{border-color:var(--signal);box-shadow:0 0 0 3px rgba(234,106,26,.1);}
+  .fhint{font-size:10.5px;color:var(--muted-2);}
+  .out{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px 14px;margin-bottom:12px;}
+  .res{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .res:last-child{border-bottom:none;}
+  .res .k{font-size:13px;color:var(--steel-2);}
+  .res .v{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .res .v .u{font-size:11px;color:var(--muted);font-weight:500;margin-left:5px;}
+  .res.strong .v{color:var(--signal-deep);font-size:17px;}
+  .tfoot{font-size:11.5px;color:var(--muted);line-height:1.7;}
+  .tfoot code{font-family:'IBM Plex Mono',monospace;background:var(--paper-3);padding:1px 5px;border-radius:4px;color:var(--steel-2);font-size:11px;}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(15,25,33,.55);z-index:60;display:none;align-items:center;justify-content:center;padding:18px;}
+  .modal.show{display:flex;}
+  .card{background:var(--paper-2);border-radius:14px;max-width:440px;width:100%;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .card h2{margin:0 0 4px;font-size:17px;}
+  .card .sub{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field>span{font-size:12.5px;font-weight:600;color:var(--steel-2);display:block;margin-bottom:5px;}
+  .field input,.field select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:inherit;font-size:14px;color:var(--ink);background:var(--paper);outline:none;}
+  .field input:focus,.field select:focus{border-color:var(--signal);box-shadow:0 0 0 3px rgba(234,106,26,.1);}
+  .warn{font-size:11.5px;color:var(--signal-deep);background:rgba(234,106,26,.08);border:1px solid rgba(234,106,26,.25);border-radius:8px;padding:9px 11px;margin-bottom:14px;line-height:1.5;}
+  .btns{display:flex;gap:9px;justify-content:flex-end;}
+  .btn{padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:13.5px;font-weight:600;cursor:pointer;}
+  .btn.primary{background:var(--signal);border-color:var(--signal);color:#fff;}
+  .btn.primary:hover{background:var(--signal-deep);}
+  .link{color:var(--signal-deep);cursor:pointer;text-decoration:underline;font-size:12px;background:none;border:none;padding:0;}
+
+  @media (max-width:760px){
+    .tabs .tab span{display:none;}
+    .brand-mini .txt{display:none;}
+    .hero h1{font-size:20px;}
+  }
+  @media (prefers-reduced-motion:reduce){.spin{animation:none;}.drawer{transition:none;}}
+  #keyDot,#setBtn,#modal{display:none!important;}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top bar -->
+  <div class="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="เมนู" title="ข้อมูล/เอกสารอ้างอิง">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="brand-mini">
+      <span class="brand-ic">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="13" rx="2"/><path d="M4 11h16"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 16h.01M16 16h.01"/></svg>
+      </span>
+      <span class="txt">Railway Track Engineer<span class="dot-ai">.AI</span></span>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-tab="chat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>ผู้ช่วย AI</span></button>
+      <button class="tab" data-tab="tools"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg><span>เครื่องมือคำนวณ</span></button>
+    </div>
+    <div class="spacer"></div>
+    <span class="key-dot" id="keyDot" title="สถานะ API key"></span>
+    <button class="icon-btn" id="setBtn" aria-label="ตั้งค่า" title="ตั้งค่า API key / โมเดล">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Chat view -->
+  <div class="view on" id="view-chat">
+    <div id="messages"></div>
+    <div class="composer">
+      <div id="imgPreview" class="img-preview"></div>
+      <div class="inwrap">
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+        <button class="attach" id="attachBtn" aria-label="แนบรูป" title="แนบรูปเพื่อวิเคราะห์">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <textarea id="input" rows="1" placeholder="พิมพ์โจทย์ทางวิศวกรรมทางรถไฟ… หรือแนบรูปเพื่อวิเคราะห์ (เช่น สภาพราง รอยตกราง แบบก่อสร้าง)"></textarea>
+        <button class="send" id="sendBtn" aria-label="ส่ง">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="cnote">Enter เพื่อส่ง · Shift+Enter ขึ้นบรรทัดใหม่ · แนบ JPG/PNG/WebP ได้สูงสุด 3 รูป · ระบบจะบีบอัดก่อนส่งวิเคราะห์</div>
+    </div>
+  </div>
+
+  <!-- Tools view -->
+  <div class="view" id="view-tools"></div>
+</div>
+
+<!-- Drawer -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+
+<!-- Settings modal -->
+<div class="modal" id="modal">
+  <div class="card">
+    <h2>ตั้งค่า</h2>
+    <div class="sub">แอปนี้รันในเบราว์เซอร์ จึงต้องใช้ Anthropic API key ของท่านเอง (ขึ้นต้นด้วย sk-ant-…)</div>
+    <div class="warn">⚠ ความปลอดภัย: key ถูกเก็บใน<strong>หน่วยความจำของหน้านี้เท่านั้น</strong> (ไม่บันทึก ไม่ฝังในไฟล์) และจะหายเมื่อรีโหลด — สำหรับใช้งานจริงในหน่วยงาน ควรตั้ง <strong>เซิร์ฟเวอร์พร็อกซี</strong> เพื่อไม่ให้ key อยู่ในเบราว์เซอร์ ห้ามเผยแพร่ไฟล์ที่มี key ฝังอยู่</div>
+    <div class="field"><span>Anthropic API Key</span><input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off"></div>
+    <div class="field"><span>โมเดล</span>
+      <select id="model">
+        <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — เร็ว/คุ้มค่า</option>
+        <option value="claude-opus-4-8">Claude Opus 4.8 — ให้เหตุผลลึกสุด</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button class="btn" id="closeModal">ยกเลิก</button>
+      <button class="btn primary" id="saveModal">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Persona (Expert Reasoning Layer) ===== */
+const SYSTEM_PROMPT = `คุณคือ "Railway Track Engineer.AI" ผู้ช่วยวิศวกรทางรถไฟ/ระบบรางระดับผู้เชี่ยวชาญ และที่ปรึกษาด้านกฎหมาย-ระเบียบที่เกี่ยวข้องกับงานรถไฟ ตอบปัญหาเทคนิคงานทาง/ระบบราง การถอดแบบ-ประมาณราคา การตรวจแบบ-ตรวจงาน และการอ้างอิงมาตรฐาน/กฎหมาย/ระเบียบ ใช้ภาษาราชการไทยที่กระชับ สุภาพ ตรวจสอบได้ เหมาะกับเอกสารหน่วยงาน
+
+ระดับความเชี่ยวชาญ — ตอบเสมือนวิศวกรทางรถไฟอาวุโสประสบการณ์ 30 ปีขึ้นไป:
+ตอบด้วยความลึก ความรอบคอบ และวิจารณญาณของผู้เชี่ยวชาญที่ผ่านงานสนามจริงมายาวนาน ความ "อัจฉริยะ" ที่แท้จริงคือความถูกต้อง ความลึก และการแยกแยะที่คมชัด ไม่ใช่ความมั่นใจเกินข้อมูล ผู้เชี่ยวชาญที่ดีรู้ขอบเขตของตน และกล้าระบุเมื่อข้อมูลไม่พอหรือเมื่อจำเป็นต้องตรวจสอบภาคสนามก่อน
+
+กระบวนการคิดก่อนตอบทุกครั้ง (คิดให้ครบในใจ แล้วเรียบเรียงคำตอบให้กระชับ ตรงประเด็น):
+1) เข้าใจ "โจทย์ที่แท้จริง" — มองทะลุคำถามผิวเผินไปยังปัญหารากเหง้าและเจตนาของผู้ถาม
+2) ระบุเอกสาร/มาตรฐานที่กำกับ (คู่มือบำรุงทาง พ.ศ. 2559 [มบท.2559], ขดร.2549, คู่มืองานระบบราง, กฎหมาย/ระเบียบที่เกี่ยวข้อง) และกรอบหลักวิศวกรรมที่ใช้
+3) วิเคราะห์โหมดความเสียหาย (failure mode) และความเสี่ยงต่อความปลอดภัยในการเดินรถก่อนเสมอ — จัดระดับความรุนแรง (หยุดเดินรถ / จำกัดความเร็ว / เฝ้าระวัง / ซ่อมตามวาระ)
+4) คำนวณเชิงปริมาณพร้อมสูตร–สมมติฐาน–หน่วย และตรวจความสมเหตุสมผลด้วยช่วงค่าที่ควรเป็น (sanity check) ทุกครั้ง
+5) ชั่งน้ำหนักทางเลือกแบบวิศวกร: ความปลอดภัย ความก่อสร้างได้จริง การบำรุงรักษา ต้นทุนตลอดอายุใช้งาน (life-cycle cost) และช่วงเวลาปิดทาง (possession)
+6) ตรวจ Interface ข้ามระบบ: งานทาง ↔ โครงสร้าง/สะพาน ↔ อาณัติสัญญาณ/วงจรราง ↔ ระบบไฟฟ้า ↔ การเดินรถ และผลกระทบต่อ Clearance/เขตทาง
+7) สรุประดับความเชื่อมั่น ระบุข้อมูลที่ยังขาด และสิ่งที่ต้องตรวจสอบ/อนุมัติก่อนนำไปใช้จริง
+
+วิจารณญาณและภูมิรู้ภาคสนาม:
+- คิดหา "รากเหง้า" ของปัญหา ไม่แก้ที่ปลายเหตุ และระบุชุดข้อมูล/การตรวจที่วิศวกรผู้ช่ำชองจะเรียกดู (ประวัติการซ่อม สภาพหินโรยทาง/การระบายน้ำ อุณหภูมิราง สภาพหมอน-เครื่องยึดเหนี่ยว ค่ามิติทางย้อนหลัง รายงานรถตรวจสภาพทาง)
+- "น้ำและการระบายน้ำ" คือต้นเหตุปัญหาทางจำนวนมาก และบริบทไทยต้องคำนึงถึงความร้อน (รางดุ้งในทางเชื่อมยาว CWR) และฤดูฝน (น้ำกัดเซาะ/น้ำท่วมทาง)
+- มาตรฐานคือ "ขั้นต่ำ" ต้องเผื่อ margin ตามสภาพจริง การเบี่ยงจากมาตรฐานต้องมีเหตุผล การคำนวณรองรับ และการอนุมัติตามสายบังคับบัญชา
+- รู้ช่วงค่าปกติของพารามิเตอร์เพื่อจับข้อผิดพลาด และทักท้วงเมื่อข้อมูลหรือผลคำนวณดูผิดปกติ
+- บริบท รฟท.: ทางเมตรเกจเป็นหลัก ทางผสม โครงสร้างพื้นฐานบางส่วนอายุมาก งบประมาณจำกัด และโครงสร้างหน่วยงาน (นายตรวจทาง สารวัตรแขวงบำรุงทาง วิศวกรกำกับการกองบำรุงทางเขต ศูนย์ทางถาวร ศูนย์สะพาน)
+
+การวินิจฉัย วิเคราะห์ และสืบสวนสอบสวนอุบัติเหตุทางรถไฟ/รถไฟตกราง (สมรรถนะเฉพาะ — ครอบคลุมทุกกรณี: รถตกราง รถชน/ชนกัน ทางผ่านเสมอระดับ ทางขาด/น้ำท่วม สะพาน ไฟไหม้ขบวนรถ):
+- ยึดวิธีปฏิบัติของ รฟท. เป็นกรอบหลัก: "แบบพิมพ์บันทึกการตรวจและพิจารณาวินิจฉัยในกรณีรถตกราง (ม.85)" และข้อปฏิบัติเมื่อเกิดเหตุอันตราย/รถตกรางในคู่มือบำรุงทาง พ.ศ. 2559 พร้อมการป้องกัน/รายงานเหตุตาม ขดร.2549 (อ้างเลขข้อ/แบบพิมพ์ และตรวจสอบกับเอกสารฉบับจริง)
+- ลำดับการปฏิบัติ: ความปลอดภัย ณ ที่เกิดเหตุและปักป้ายป้องกันก่อน → ช่วยเหลือผู้บาดเจ็บ → รักษาร่องรอย/หลักฐาน → บันทึก → สอบสวนหาสาเหตุ → เปิดทาง → รายงาน
+- กำหนดจุดตกราง (POD) จากรอยล้อ/จุดที่บังใบเริ่มปีนราง/รอยตก/รอยบนหัวราง-หมอน-เครื่องยึดเหนี่ยว ระบุล้อคู่/รถหลังที่ตกก่อน; ทำแผนผังสังเขปพร้อมมิติ (กม./รัศมี/อัตราลาด/ทางผ่านเสมอระดับ/สะพาน/ท่าสัญญาณ); วัดความกว้างของทางและความต่างระดับราง (cross-level) ที่หัวต่อรางและจุดวัดมิติ ย้อนหลังไม่น้อยกว่า 125 เมตร ก่อนรอยแรกของล้อที่ตก ในโค้งวัดระยะลูกศรด้วยเส้นเชือก; บันทึกสภาพหมอน/ราง/หินโรยทาง/เครื่องยึดเหนี่ยว; ตรวจล้อเลื่อนหาความชำรุดที่มิได้เกิดจากการตกราง (หม้อเพลา แหนบแบน/หัก back-to-back ปลอกล้อ) แยกรอยร้าวเก่า/ใหม่; ตรวจการบรรทุกและประวัติการซ่อมทาง
+- วิเคราะห์สาเหตุแยกหมวด: ทาง (ทางกว้างเกิน ทวิสต์ รางหัก รางดุ้ง ทางทรุด/น้ำกัดเซาะ) · ล้อเลื่อน (ล้อ/แหนบ/back-to-back/บรรทุก) · ปฏิสัมพันธ์ล้อ-ราง (การปีนรางของบังใบ ประเมินด้วยอัตราส่วน Y/Q เทียบเกณฑ์ Nadal, การลดแรงกดล้อ) · การเดินรถ (ความเร็วเกินผ่านโค้งสัมพันธ์กับส่วนขาดการยกราง การห้ามล้อรุนแรง) · ภายนอก (สิ่งกีดขวาง ดินถล่ม น้ำท่วม)
+- หารากเหง้า (RCA): แยกสาเหตุเฉพาะหน้า/ปัจจัยร่วม/รากเหง้า ใช้ 5 Whys, ก้างปลา, Fault Tree, แบบจำลองชั้นป้องกัน (Swiss-cheese) ระบุน้ำหนักหลักฐานและตัดสมมติฐานที่ขัดหลักฐาน
+- รูปแบบรายงานสืบสวน: ข้อเท็จจริงที่ตรวจพบ → ลำดับเหตุการณ์ → วิเคราะห์กลไก/คำนวณ → สาเหตุเฉพาะหน้า/ปัจจัยร่วม/รากเหง้า → ข้อเสนอแนะแก้ไข-ป้องกันการเกิดซ้ำ → บรรทัดสรุปผู้บริหาร
+- ขอบเขต: การสืบสวนทางการต้องมีคณะกรรมการสอบสวนที่มีอำนาจ + การตรวจวัดภาคสนาม + การลงนามตามแบบ ม.85 — Agent สนับสนุนการวิเคราะห์ ไม่แทนการสอบสวนทางการ; ห้ามสรุปสาเหตุชี้ขาดโดยไม่มีหลักฐาน; นำเสนอเชิงวิศวกรรม/ข้อเท็จจริง หลีกเลี่ยงการกล่าวโทษบุคคลโดยไม่มีหลักฐาน และอ้างข้อกำหนดการรายงาน/สอบสวนตามกฎหมาย (เช่น พ.ร.บ.การขนส่งทางราง พ.ศ. 2568) เมื่อเกี่ยวข้อง
+
+เอกสารอ้างอิงหลัก (อ้างอิงตามเอกสารเหล่านี้ และระบุชื่อเอกสาร + ข้อ/มาตรา/หมวด/หน้า/ตาราง ทุกครั้ง เช่น "ตาม ขดร.2549 ข้อ ..." · "ตามคู่มือบำรุงทาง 2559 หัวข้อ/ตาราง ..." · "ตาม พ.ร.บ.การจัดซื้อจัดจ้างฯ พ.ศ. 2560 มาตรา ..." · "ตามระเบียบ กค. ว่าด้วยการจัดซื้อจัดจ้างฯ พ.ศ. 2560 ข้อ ..." — โดยห้ามกุเลขข้อ/มาตรา หากไม่แน่ใจให้ระบุว่า "ต้องตรวจสอบเลขข้อ/มาตรากับเอกสารฉบับจริง"):
+- บำรุงทาง/เรขาคณิต/สะพาน/รถตรวจสภาพทาง → คู่มือบำรุงทาง พ.ศ. 2559 (มบท.2559) เป็นหลัก, เทียบ พ.ศ. 2538, "เพื่อนักบำรุงทาง", คู่มืองานระบบราง
+- การเดินรถ/สัญญาณ/ครอบครองทาง/ทางผ่านเสมอระดับ/CTC → ขดร.2549 และ ขดร. หมวด 9, เอกสารระบบควบคุมการเดินรถจากศูนย์กลาง
+- กฎหมาย/อำนาจหน้าที่/เขตทาง/ที่ดิน → พ.ร.บ.การขนส่งทางราง พ.ศ. 2568, พ.ร.บ.การรถไฟฯ พ.ศ. 2494, พ.ร.บ.จัดวางการรถไฟและทางหลวง พ.ศ. 2464, ระเบียบที่ดินรถไฟ พ.ศ. 2483, พ.ร.บ.ระบบตั๋วร่วม พ.ศ. 2568
+- ถอดแบบ/ราคากลาง/จัดซื้อจัดจ้าง/TOR/ร่วมลงทุน/การเงิน → พ.ร.บ.จัดซื้อจัดจ้างฯ พ.ศ. 2560 + ระเบียบ กค. + กฎกระทรวง, พ.ร.บ.ร่วมลงทุน, พ.ร.บ.วินัยการเงินการคลัง พ.ศ. 2561
+
+หลักการตอบ:
+- ห้ามกุค่ามาตรฐาน เลขข้อกฎหมาย ราคา หรือค่าตัวเลขในตารางพิกัด หากไม่มีข้อความต้นฉบับหรือผู้ใช้ไม่ได้ให้ข้อมูล ให้แสดงค่า/เลขข้อเฉพาะเป็น "ตามหลักการ — ต้องตรวจสอบกับเอกสารฉบับจริง"
+- แยกชัดเจน: ข้อเท็จจริง / สมมติฐาน / การคำนวณ / ความเห็นเชิงวิศวกรรมจากประสบการณ์ / ข้อเสนอแนะ
+- ใช้หน่วย SI แสดงสูตร–การแทนค่า–ตรวจหน่วยทุกครั้งที่คำนวณ และใช้ตารางเมื่อมีหลายรายการ
+- ความปลอดภัยในการเดินรถมาก่อนเสมอ งานที่กระทบโครงสร้าง/ความปลอดภัย/การเดินรถ ต้องเสนอให้วิศวกรผู้รับผิดชอบตรวจสอบและอนุมัติก่อนใช้จริง
+- การคุ้มครองข้อมูล: เอกสารภายในห้ามคัดลอกต้นฉบับเป็นช่วงยาวหรือเผยแพร่สาธารณะ ยกเท่าที่จำเป็นพร้อมระบุที่มา
+
+รูปแบบการตอบ — ปัญหาวิศวกรรม: สรุป → วิเคราะห์ → มาตรฐาน/เอกสารอ้างอิง → คำนวณ/ตรวจสอบ → ความเสี่ยง → ข้อเสนอแนะ → บรรทัดสรุปสำหรับผู้บริหาร | คำนวณ: ข้อมูลตั้งต้น/สมมติฐาน/สูตร/แทนค่า/ผลลัพธ์/ตรวจหน่วย/ความเห็น/ข้อจำกัด | ถอดแบบ-ประมาณราคา: ขอบเขต/รายการงาน/วิธีถอดปริมาณ/ตารางปริมาณ/หน่วย/จุดตรวจจากแบบ/ความเสี่ยง/ข้อเสนอแนะ BOQ-ราคากลาง | ตรวจแบบ-ตรวจงาน: ประเด็นที่พบ/ความถูกต้อง/จุดเสี่ยง/คำถามถึงผู้ออกแบบ-ผู้รับจ้าง/เอกสารที่ควรขอ/ความเห็นระดับผู้บริหาร
+
+เมื่อข้อมูลไม่ครบ: ระบุข้อมูลที่ขาด → ตั้งสมมติฐานเบื้องต้น → ให้ผลวิเคราะห์เบื้องต้น → ระบุสิ่งที่ต้องตรวจเพิ่ม (อย่าหยุดเพียงถามกลับ เว้นแต่วิเคราะห์ไม่ได้จริง) คงไว้ซึ่งความถูกต้องและความปลอดภัยเหนือความสละสลวยของคำตอบเสมอ`;
+
+/* ===== Data ===== */
+const QUICK = [
+  "ช่วยคำนวณ Cant ของโค้งรัศมี 800 เมตร ความเร็วออกแบบ 100 กม./ชม. ราง 1.000 เมตร (เมตรเกจ) พร้อมตรวจส่วนขาดการยกราง",
+  "วิเคราะห์สาเหตุรางดุ้ง (Track Buckling) ในทางเชื่อมยาว และแนวทางป้องกัน/แก้ไข พร้อมจัดลำดับความรุนแรง",
+  "เปรียบเทียบ Ballasted Track กับ Slab Track เป็นตาราง (ข้อดี/ข้อเสีย/ค่าก่อสร้าง/บำรุงรักษา) สำหรับบริบทไทย",
+  "งานบูรณะทางควรใช้วิธีจัดซื้อจัดจ้างแบบใด อ้างอิง พ.ร.บ.การจัดซื้อจัดจ้างฯ พ.ศ. 2560",
+  "ร่างบันทึกเสนอผู้บริหารขออนุมัติงบประมาณงานบูรณะทาง (โครงร่างทางการ พร้อมเหตุผลความจำเป็น)",
+  "มีรถสินค้าตกรางในทางโค้งรัศมี 300 เมตร ช่วยวางแนวทางสืบสวนหาสาเหตุ: การรักษาที่เกิดเหตุ การหาจุดตกราง (POD) การเก็บหลักฐาน การวัดทาง/ล้อเลื่อน และการวิเคราะห์รากเหง้า ตามแนวทาง รฟท. (แบบ ม.85)",
+];
+const QUICK_LABEL = ["คำนวณ Cant","วิเคราะห์รางดุ้ง","Ballasted vs Slab","วิธีจัดซื้อจัดจ้าง","ร่างบันทึกผู้บริหาร","สืบสวนรถตกราง"];
+const CAPS = [
+  ["เรขาคณิตทาง","Cant, Transition, Versine, String Lining"],
+  ["ถอดแบบ / ประมาณราคา","BOQ, ปร.4/5/6, เหตุผลทางเทคนิค"],
+  ["ตรวจแบบ / ตรวจงาน","TOR, Spec, Drawing, Checklist"],
+  ["วิเคราะห์ Track Defect","รางดุ้ง ทางทรุด คันทางเสียรูป"],
+  ["เปรียบเทียบมาตรฐาน","รฟท. / UIC / EN / AREMA / AS / JIS"],
+  ["เอกสารราชการ","บันทึกผู้บริหาร รายงานตรวจรับ"],
+  ["วินิจฉัย/สืบสวนอุบัติเหตุ","รถตกราง · จุดตกราง (POD) · รากเหง้า · แบบ ม.85"],
+];
+const REFS = [
+  ["บำรุงทาง · เรขาคณิต · สะพาน",["คู่มือบำรุงทาง พ.ศ. 2559 (มบท.2559)","คู่มือบำรุงทาง พ.ศ. 2538","เพื่อนักบำรุงทาง","คู่มืองานระบบราง","สะพานรถไฟ (รฟท.)","รถตรวจสภาพทาง บตท.1"]],
+  ["การเดินรถ · สัญญาณ",["ขดร.2549 — ข้อบังคับและระเบียบการเดินรถ","ขดร. หมวด 9 (สายสีแดง)","ระบบควบคุมการเดินรถจากศูนย์กลาง (CTC)"]],
+  ["กฎหมาย · ที่ดิน",["พ.ร.บ.การขนส่งทางราง พ.ศ. 2568","พ.ร.บ.การรถไฟฯ พ.ศ. 2494","พ.ร.บ.จัดวางการรถไฟและทางหลวง พ.ศ. 2464","ระเบียบที่ดินรถไฟ พ.ศ. 2483","พ.ร.บ.ระบบตั๋วร่วม พ.ศ. 2568"]],
+  ["จัดซื้อจัดจ้าง · การเงิน",["พ.ร.บ.จัดซื้อจัดจ้างฯ พ.ศ. 2560","ระเบียบ กค. จัดซื้อจัดจ้าง 2560","กฎกระทรวง 7 ฉบับ","พ.ร.บ.ร่วมลงทุน (PPP)","พ.ร.บ.วินัยการเงินการคลัง พ.ศ. 2561"]],
+];
+
+/* ===== State ===== */
+let messages = [];
+let pendingImages = [];
+let loading = false;
+let API_KEY = "";
+let MODEL = "claude-sonnet-4-6";
+
+/* ===== Helpers ===== */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+function inlineMd(s){
+  s = esc(s);
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+  return s;
+}
+function splitRow(s){ return s.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim()); }
+function mdToHtml(text){
+  const lines = (text||"").replace(/\r\n/g,"\n").split("\n");
+  let h="", i=0;
+  const isSep = s => s && s.includes("-") && /^\s*\|?[\s:|\-]+\|?\s*$/.test(s);
+  while(i<lines.length){
+    const line = lines[i];
+    if(/^```/.test(line.trim())){ i++; const b=[]; while(i<lines.length && !/^```/.test(lines[i].trim())){b.push(lines[i]);i++;} i++; h+='<pre class="md-pre"><code>'+esc(b.join("\n"))+"</code></pre>"; continue; }
+    if(line.includes("|") && i+1<lines.length && isSep(lines[i+1]) && lines[i+1].includes("|")){
+      const hd=splitRow(line); i+=2; const rows=[];
+      while(i<lines.length && lines[i].includes("|") && lines[i].trim()!==""){ rows.push(splitRow(lines[i])); i++; }
+      h+='<div class="md-table-wrap"><table class="md-table"><thead><tr>'+hd.map(x=>'<th class="md-th">'+inlineMd(x)+"</th>").join("")+"</tr></thead><tbody>"+rows.map(r=>"<tr>"+r.map(c=>'<td class="md-td">'+inlineMd(c)+"</td>").join("")+"</tr>").join("")+"</tbody></table></div>";
+      continue;
+    }
+    const hm = line.match(/^(#{1,6})\s+(.*)$/);
+    if(hm){ const lvl=Math.min(hm[1].length,4); h+='<div class="md-h md-h'+lvl+'">'+inlineMd(hm[2])+"</div>"; i++; continue; }
+    if(/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)){ h+='<hr class="md-hr">'; i++; continue; }
+    if(/^\s*>\s?/.test(line)){ const b=[]; while(i<lines.length && /^\s*>\s?/.test(lines[i])){ b.push(lines[i].replace(/^\s*>\s?/,"")); i++; } h+='<blockquote class="md-quote">'+b.map(x=>"<div>"+inlineMd(x)+"</div>").join("")+"</blockquote>"; continue; }
+    if(/^\s*[-*]\s+/.test(line)){ const it=[]; while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){ it.push(lines[i].replace(/^\s*[-*]\s+/,"")); i++; } h+='<ul class="md-ul">'+it.map(x=>'<li class="md-li">'+inlineMd(x)+"</li>").join("")+"</ul>"; continue; }
+    if(/^\s*\d+\.\s+/.test(line)){ const it=[]; while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){ it.push(lines[i].replace(/^\s*\d+\.\s+/,"")); i++; } h+='<ol class="md-ol">'+it.map(x=>'<li class="md-li">'+inlineMd(x)+"</li>").join("")+"</ol>"; continue; }
+    if(line.trim()===""){ i++; continue; }
+    const p=[line]; i++;
+    while(i<lines.length && lines[i].trim()!=="" && !/^```/.test(lines[i].trim()) && !/^#{1,6}\s/.test(lines[i]) && !/^\s*[-*]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i]) && !/^\s*>\s?/.test(lines[i]) && !(lines[i].includes("|") && i+1<lines.length && isSep(lines[i+1]))){ p.push(lines[i]); i++; }
+    h+='<p class="md-p">'+p.map(inlineMd).join("<br>")+"</p>";
+  }
+  return h;
+}
+
+/* ===== Chat render ===== */
+const heroSVG = `<svg viewBox="0 0 640 200" style="width:100%;height:auto"><g>
+  ${(()=>{const vx=320,vy=34,lB={x:70,y:182},rB={x:570,y:182};let t="";const n=9;
+    for(let k=0;k<n;k++){const f=Math.pow(k/(n-1),1.7)*0.9;const Lx=lB.x+(vx-lB.x)*f,Ly=lB.y+(vy-lB.y)*f,Rx=rB.x+(vx-rB.x)*f,Ry=rB.y+(vy-rB.y)*f;t+=`<line x1="${Lx}" y1="${Ly}" x2="${Rx}" y2="${Ry}" stroke="#9DAAB1" stroke-width="${(2.2-1.4*f).toFixed(2)}" stroke-linecap="round" opacity="0.55"/>`;}
+    return t;})()}
+  <line x1="70" y1="182" x2="320" y2="34" stroke="#EA6A1A" stroke-width="2.6" stroke-linecap="round"/>
+  <line x1="570" y1="182" x2="320" y2="34" stroke="#EA6A1A" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="320" cy="34" r="3.4" fill="#EA6A1A"/>
+</g></svg>`;
+
+function renderChat(){
+  const box = $("messages");
+  if(messages.length===0 && !loading){
+    box.innerHTML = `<div class="hero">
+      <div class="hero-art">${heroSVG}</div>
+      <div class="hero-badge">ระดับวิศวกรอาวุโส · ประสบการณ์เทียบเท่า 30+ ปี</div>
+      <h1>ผู้ช่วยวิศวกรทางรถไฟ</h1>
+      <p>วิเคราะห์ปัญหาทาง · คำนวณเรขาคณิต · ถอดแบบ/ประมาณราคา · ตรวจแบบ-ตรวจงาน<br>อ้างอิงตาม ขดร.2549 · คู่มือบำรุงทาง 2559 (มบท.2559) และเอกสาร รฟท. — ยึดความปลอดภัยเป็นลำดับแรก</p>
+      <div class="chips">${QUICK.map((q,i)=>`<button class="chip" data-q="${i}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>${esc(QUICK_LABEL[i])}</button>`).join("")}</div>
+    </div>`;
+    box.querySelectorAll(".chip").forEach(c => c.onclick = () => send(QUICK[+c.dataset.q]));
+    return;
+  }
+  let html = '<div class="msgs-wrap">';
+  for(const m of messages){
+    let inner;
+    if(m.role==="assistant"){ inner = '<div class="md">'+mdToHtml(m.content)+"</div>"; }
+    else {
+      const imgsHtml = (m.images && m.images.length) ? '<div class="bubble-imgs">'+m.images.map(im=>`<img src="${im.dataUrl || ('data:'+im.media_type+';base64,'+im.data)}" alt="แนบรูป">`).join("")+"</div>" : "";
+      const textHtml = m.content ? '<div class="user-text">'+esc(m.content)+"</div>" : "";
+      inner = imgsHtml + textHtml;
+    }
+    const av = m.role==="user" ? "คุณ" : trainSvg(15);
+    html += `<div class="row ${m.role}"><div class="av">${av}</div><div class="bubble">${inner}</div></div>`;
+  }
+  if(loading) html += `<div class="row assistant"><div class="av">${trainSvg(15)}</div><div class="bubble"><span class="thinking"><span class="spin"></span> กำลังพิจารณาทางวิศวกรรม…</span></div></div>`;
+  html += "</div>";
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
+}
+function trainSvg(s){ return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="13" rx="2"/><path d="M4 11h16"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 16h.01M16 16h.01"/></svg>`; }
+
+/* ===== Send ===== */
+async function send(text){
+  const content = (text !== undefined ? text : $("input").value).trim();
+  if((!content && pendingImages.length===0) || loading) return;
+  const imgs = pendingImages.slice();
+  messages.push({role:"user", content, images: imgs});
+  pendingImages = []; renderPreview();
+  $("input").value = ""; autoGrow();
+  loading = true; renderChat(); updateSend();
+  try{
+    const res = await fetch("/api/chat", {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ messages: messages.map(m=>({ role:m.role, content:m.content, images:(m.images||[]).map(im=>({media_type:im.media_type, data:im.data})) })) })
+    });
+    if(!res.ok){ let d=""; try{ const j=await res.json(); d=j.error||JSON.stringify(j); }catch(_){ d=await res.text(); } throw new Error("HTTP "+res.status+" — "+d); }
+    const data = await res.json();
+    const reply = (data.text||"").trim();
+    messages.push({role:"assistant", content: reply || "(ไม่มีเนื้อหาตอบกลับ)"});
+  }catch(e){
+    messages.push({role:"assistant", content: "**เกิดข้อผิดพลาดในการเรียกใช้งาน**\n\n"+esc(e.message||String(e))+"\n\nตรวจสอบ: API key ถูกต้องและมีเครดิตหรือไม่ · โมเดลที่เลือก · การเชื่อมต่ออินเทอร์เน็ต แล้วลองส่งใหม่"});
+  }finally{
+    loading = false; renderChat(); updateSend();
+  }
+}
+function updateSend(){ const b=$("sendBtn"); const has=$("input").value.trim().length>0 || pendingImages.length>0; b.disabled = loading || !has; }
+function autoGrow(){ const el=$("input"); el.style.height="auto"; el.style.height=Math.min(el.scrollHeight,150)+"px"; }
+
+/* ===== Image attach ===== */
+const MAX_DIM = 1568, MAX_IMAGES = 3;
+function renderPreview(){
+  const box = $("imgPreview");
+  box.innerHTML = pendingImages.map((im,i)=>`<div class="thumb"><img src="${im.dataUrl}" alt=""><button class="rm" data-i="${i}" aria-label="ลบรูป">×</button></div>`).join("");
+  box.querySelectorAll(".rm").forEach(b=> b.onclick = ()=>{ pendingImages.splice(+b.dataset.i,1); renderPreview(); updateSend(); });
+}
+function downscale(file){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      const scale = Math.min(1, MAX_DIM/Math.max(w,h));
+      w = Math.max(1, Math.round(w*scale)); h = Math.max(1, Math.round(h*scale));
+      const c = document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      const dataUrl = c.toDataURL("image/jpeg",0.85);
+      resolve({ media_type:"image/jpeg", data:dataUrl.split(",")[1], dataUrl });
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error("อ่านรูปไม่ได้")); };
+    img.src = url;
+  });
+}
+async function addFiles(fileList){
+  const files = Array.from(fileList||[]).filter(f=>f.type && f.type.startsWith("image/"));
+  for(const f of files){
+    if(pendingImages.length>=MAX_IMAGES) break;
+    try{ pendingImages.push(await downscale(f)); }catch(_){}
+  }
+  renderPreview(); updateSend();
+}
+
+/* ===== Tools ===== */
+const num = v => { const n=parseFloat(v); return Number.isFinite(n)?n:null; };
+const fmt = (n,d=2) => (n===null||!Number.isFinite(n)) ? "—" : n.toLocaleString("en-US",{maximumFractionDigits:d});
+function field(id,label,unit,val,hint){ return `<div class="fld"><label><span>${label}</span><span class="u">${unit||""}</span></label><input id="${id}" type="number" inputmode="decimal" step="any" value="${val!==undefined?val:""}">${hint?`<span class="fhint">${hint}</span>`:""}</div>`; }
+function res(k,id,unit,strong){ return `<div class="res ${strong?"strong":""}"><span class="k">${k}</span><span class="v"><span id="${id}">—</span><span class="u">${unit}</span></span></div>`; }
+
+function buildTools(){
+  $("view-tools").innerHTML = `<div class="tools">
+    <div class="tnote"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/></svg>
+      <span>เครื่องมือคำนวณตามสูตรมาตรฐาน แสดงสูตรและการแทนค่าให้ตรวจสอบได้ — ค่าพิกัด/ลิมิตให้ยึดตามคู่มือบำรุงทาง รฟท. และให้วิศวกรผู้รับผิดชอบตรวจสอบก่อนใช้จริง · ทำงานได้โดยไม่ต้องใช้ API</span></div>
+
+    <div class="tool">
+      <div class="tool-h"><span class="tool-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2M12 10 16 6"/><path d="M4.9 19.1A10 10 0 1 1 19.1 19.1"/></svg></span>
+        <div><div class="tool-t">Cant และความเร็วผ่านโค้ง</div><div class="tool-d">ส่วนสูงรางสมดุล · ส่วนขาด/ส่วนเกินการยกราง · ความเร็วสูงสุด</div></div></div>
+      <div class="grid">
+        ${field("c_V","ความเร็วออกแบบ V","กม./ชม.","100")}
+        ${field("c_R","รัศมีโค้ง R","ม.","800")}
+        ${field("c_G","ระยะห่างราง G","มม.","1000","เมตรเกจ ≈ 1000")}
+        ${field("c_Ea","ส่วนสูงที่ใช้จริง Ea","มม.","","กรอกเพื่อหาส่วนขาด")}
+        ${field("c_D","พิกัดส่วนขาด D","มม.","","เพื่อหา Vmax")}
+      </div>
+      <div class="out">${res("ส่วนสูงรางสมดุล (Equilibrium cant)","c_eeq","มม.",true)}<div id="c_def_w"></div><div id="c_vmax_w"></div></div>
+      <div class="tfoot">สูตร: <code>E = (G × V²) ÷ (127 × R)</code> · <code>Vmax = √((Ea + D) × 127 × R ÷ G)</code></div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-h"><span class="tool-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a4 4 0 0 0 4-4V9"/></svg></span>
+        <div><div class="tool-t">ความยาวโค้งถ่ายโยง (Transition)</div><div class="tool-d">เทียบ 2 เกณฑ์: ความชันการยกราง และอัตราเปลี่ยนการยกราง</div></div></div>
+      <div class="grid">
+        ${field("t_Ea","ส่วนสูงการยกราง Ea","มม.","90")}
+        ${field("t_V","ความเร็วออกแบบ V","กม./ชม.","100")}
+        ${field("t_n","ลิมิตความชัน 1:n","n","400","ตามมาตรฐาน")}
+        ${field("t_r","ลิมิตอัตราเปลี่ยน r","มม./วิ","35","ตามมาตรฐาน")}
+      </div>
+      <div class="out">${res("เกณฑ์ความชันการยกราง (L1)","t_L1","ม.")}${res("เกณฑ์อัตราเปลี่ยน (L2)","t_L2","ม.")}${res("ความยาวที่ใช้ควบคุม","t_Lg","ม.",true)}</div>
+      <div class="tfoot">สูตร: <code>L1 = n × Ea ÷ 1000</code> · <code>L2 = Ea × V ÷ (3.6 × r)</code> — เลือกค่ามากกว่า</div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-h"><span class="tool-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></span>
+        <div><div class="tool-t">รัศมีโค้งจากระยะลูกศร (String Lining)</div><div class="tool-d">กรอกคอร์ด C เสมอ แล้วกรอก "ระยะลูกศร" หรือ "รัศมี" อย่างใดอย่างหนึ่ง</div></div></div>
+      <div class="grid">
+        ${field("v_C","ความยาวคอร์ด (ชยา) C","ม.","20")}
+        ${field("v_v","ระยะลูกศร v","มม.","","กรอกเพื่อหารัศมี")}
+        ${field("v_R","รัศมีโค้ง R","ม.","","กรอกเพื่อหาระยะลูกศร")}
+      </div>
+      <div class="out"><div id="v_R_w"></div><div id="v_v_w"></div><div id="v_none_w"></div></div>
+      <div class="tfoot">สูตร: <code>v = C² ÷ (8R)</code> → <code>R = 125 × C² ÷ v(มม.)</code> · <code>v(มม.) = 125 × C² ÷ R</code></div>
+    </div>
+  </div>`;
+
+  const wire = ids => ids.forEach(id => { const el=$(id); if(el) el.addEventListener("input", recompute); });
+  wire(["c_V","c_R","c_G","c_Ea","c_D","t_Ea","t_V","t_n","t_r","v_C","v_v","v_R"]);
+  recompute();
+}
+function recompute(){
+  // Cant
+  const V=num($("c_V").value),R=num($("c_R").value),G=num($("c_G").value),Ea=num($("c_Ea").value),D=num($("c_D").value);
+  const eeq=(V!==null&&R!==null&&G!==null&&R>0)?(G*V*V)/(127*R):null;
+  $("c_eeq").textContent=fmt(eeq,1);
+  const def=(eeq!==null&&Ea!==null)?(eeq-Ea):null;
+  $("c_def_w").innerHTML = def!==null ? res((def>=0?"ส่วนขาดการยกราง (Cant deficiency)":"ส่วนเกินการยกราง (Cant excess)"),"c_def","มม.") : "";
+  if(def!==null) $("c_def").textContent=fmt(Math.abs(def),1);
+  const vmax=(Ea!==null&&D!==null&&R!==null&&G!==null&&G>0&&(Ea+D)>=0)?Math.sqrt(((Ea+D)*127*R)/G):null;
+  $("c_vmax_w").innerHTML = vmax!==null ? res("ความเร็วสูงสุดโดยประมาณ Vmax","c_vmax","กม./ชม.") : "";
+  if(vmax!==null) $("c_vmax").textContent=fmt(vmax,1);
+  // Transition
+  const tEa=num($("t_Ea").value),tV=num($("t_V").value),tn=num($("t_n").value),tr=num($("t_r").value);
+  const L1=(tEa!==null&&tn!==null)?(tn*tEa)/1000:null;
+  const L2=(tEa!==null&&tV!==null&&tr!==null&&tr>0)?(tEa*tV)/(3.6*tr):null;
+  const Lg=(L1!==null&&L2!==null)?Math.max(L1,L2):(L1!==null?L1:L2);
+  $("t_L1").textContent=fmt(L1,2); $("t_L2").textContent=fmt(L2,2); $("t_Lg").textContent=fmt(Lg,2);
+  // Versine
+  const C=num($("v_C").value),vv=num($("v_v").value),vR=num($("v_R").value);
+  const Rc=(C!==null&&vv!==null&&vv>0)?(125*C*C)/vv:null;
+  const vc=(C!==null&&vR!==null&&vR>0)?(125*C*C)/vR:null;
+  $("v_R_w").innerHTML = Rc!==null ? res("รัศมีโค้ง R","v_Rr","ม.",true) : "";
+  if(Rc!==null) $("v_Rr").textContent=fmt(Rc,0);
+  $("v_v_w").innerHTML = vc!==null ? res("ระยะลูกศร (versine)","v_vv","มม.",true) : "";
+  if(vc!==null) $("v_vv").textContent=fmt(vc,1);
+  $("v_none_w").innerHTML = (Rc===null&&vc===null) ? res("กรอก v หรือ R เพื่อคำนวณ","v_nn","") : "";
+}
+
+/* ===== Drawer ===== */
+function buildDrawer(){
+  $("drawer").innerHTML = `
+    <div class="drawer-top"><div><h3>Railway Track Engineer<span class="dot-ai">.AI</span></h3><div class="drawer-sub">ผู้ช่วยวิศวกรทางรถไฟ · ระดับผู้เชี่ยวชาญ</div></div>
+      <button class="icon-btn" id="closeDrawer" aria-label="ปิด" style="color:#cdd8df"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="sec"><div class="sec-h">ขอบเขตงาน</div>${CAPS.map(c=>`<div class="cap"><span class="cap-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></span><div><div class="cap-t">${esc(c[0])}</div><div class="cap-d">${esc(c[1])}</div></div></div>`).join("")}</div>
+    <div class="sec"><div class="sec-h">เอกสารอ้างอิงหลัก</div>${REFS.map(g=>`<div class="ref-g"><div class="ref-g-t">${esc(g[0])}</div><ul>${g[1].map(d=>`<li>${esc(d)}</li>`).join("")}</ul></div>`).join("")}</div>
+    <div class="disc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>ผลลัพธ์เป็นการสนับสนุนการวิเคราะห์ ไม่ใช่การรับรองแบบ งานด้านความปลอดภัยเดินรถต้องตรวจสอบภาคสนามและอนุมัติตามสายบังคับบัญชา</span></div>`;
+  $("closeDrawer").onclick = closeDrawer;
+}
+function openDrawer(){ $("drawer").classList.add("show"); $("scrim").classList.add("show"); }
+function closeDrawer(){ $("drawer").classList.remove("show"); $("scrim").classList.remove("show"); }
+
+/* ===== Modal ===== */
+function openModal(){ $("apiKey").value=API_KEY; $("model").value=MODEL; $("modal").classList.add("show"); setTimeout(()=>$("apiKey").focus(),50); }
+function closeModal(){ $("modal").classList.remove("show"); }
+function saveModal(){ API_KEY=$("apiKey").value.trim(); MODEL=$("model").value; $("keyDot").classList.toggle("ok", !!API_KEY); closeModal(); }
+
+/* ===== Tabs ===== */
+function setTab(t){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on", b.dataset.tab===t));
+  $("view-chat").classList.toggle("on", t==="chat");
+  $("view-tools").classList.toggle("on", t==="tools");
+}
+
+/* ===== Init ===== */
+buildDrawer();
+buildTools();
+renderChat();
+$("menuBtn").onclick = openDrawer;
+$("scrim").onclick = closeDrawer;
+$("setBtn").onclick = openModal;
+$("closeModal").onclick = closeModal;
+$("saveModal").onclick = saveModal;
+$("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$("sendBtn").onclick = () => send();
+$("attachBtn").onclick = () => $("fileInput").click();
+$("fileInput").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
+$("input").addEventListener("paste", e => { const fs = e.clipboardData && e.clipboardData.files ? Array.from(e.clipboardData.files) : []; if(fs.some(f=>f.type && f.type.startsWith("image/"))){ e.preventDefault(); addFiles(fs); } });
+$("input").addEventListener("input", () => { autoGrow(); updateSend(); });
+$("input").addEventListener("keydown", e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
+updateSend();
+</script>
+</body>
+</html>
