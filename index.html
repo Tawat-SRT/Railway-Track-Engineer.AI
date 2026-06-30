@@ -436,8 +436,20 @@ async function send(text){
       headers:{ "content-type":"application/json" },
       body: JSON.stringify({ messages: messages.map(m=>({ role:m.role, content:m.content, images:(m.images||[]).map(im=>({media_type:im.media_type, data:im.data})) })) })
     });
-    if(!res.ok){ let d=""; try{ const j=await res.json(); d=j.error||JSON.stringify(j); }catch(_){ d=await res.text(); } throw new Error("HTTP "+res.status+" — "+d); }
-    const data = await res.json();
+    const bodyText = await res.text();
+    let data = null;
+    try { data = JSON.parse(bodyText); } catch(_) {}
+    if(!res.ok || !data){
+      let msg;
+      if(data && data.error){
+        msg = data.error + (data.detail ? (" — " + (typeof data.detail==="string"? data.detail : JSON.stringify(data.detail)).slice(0,200)) : "");
+      } else if(/^\s*</.test(bodyText)){
+        msg = "เซิร์ฟเวอร์ตอบกลับเป็นหน้าเว็บ ไม่ใช่ข้อมูล (HTTP "+res.status+") — แปลว่าเส้นทาง /api/chat ยังไม่ทำงาน ตรวจว่าไฟล์อยู่ที่ cloud-functions/api/chat.js และกด Redeploy แล้ว";
+      } else {
+        msg = "HTTP "+res.status+" — "+(bodyText.slice(0,200) || "ไม่มีรายละเอียด");
+      }
+      throw new Error(msg);
+    }
     const reply = (data.text||"").trim();
     messages.push({role:"assistant", content: reply || "(ไม่มีเนื้อหาตอบกลับ)"});
   }catch(e){
